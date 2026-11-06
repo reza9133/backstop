@@ -783,7 +783,7 @@ const scenarios = {
   lapse: () =>
     scenario("lapse", "a policy that is only half backed: unback, wait for the deadline, lapse; everything goes back", async () => {
       const before = await snapshot();
-      let row = await openPolicy({ times: { backing: 60 }, label: "create_policy (short backing time)" });
+      let row = await openPolicy({ times: { backing: 180 }, label: "create_policy (short backing time)" });
       if (row === null || row.state !== S.OPEN) skip(`no wording passed the wording check (${row ? STATE[row.state] : "no policy"})`);
       const pid = row.id;
       await mustWork(backerA, "back", [pid], { value: 6n * MILLI, label: "back (backer A)" });
