@@ -169,3 +169,8 @@ The AI is a real model, so the live run accepts any verdict it gives and checks 
   retries such answers; if a scenario still fails, run it alone: `node scripts/e2e.mjs --only lapse`.
 - **Live run: balance checks.** Refunds can show up on the node a few seconds late, so each scenario waits until the
   balances stop moving before it takes its "before" snapshot.
+
+- **Live run: GEN attached to refused calls.** The adversarial steps send value with calls that the contract must refuse.
+  On Studionet that value was not returned to the sender (it stayed in the contract's balance, outside its books): the
+  contract's balance equalled the books plus the sum of those values to the wei. The run now counts it, prints the amount
+  and checks the balances against it. Do not send real value with calls that can be refused.

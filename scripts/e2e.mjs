@@ -333,6 +333,7 @@ async function send(who, fn, args, { value = 0n, label = fn, expectFail = false,
       step.ok = false; // the node refused it before it was even sent
       step.status = `rejected: ${String(err?.shortMessage ?? err?.message ?? err).slice(0, 140)}`;
     }
+    if (!step.ok && step.hash && value > 0n && who.name in stuck) stuck[who.name] += value;
     current.steps.push({ ...step });
     report.summary.transactions++;
     console.log(`  ${step.ok ? "ok " : expectFail ? "no " : "ERR"} ${label} by ${who.name} ${step.hash ?? ""} (${step.status})`);
@@ -342,6 +343,9 @@ async function send(who, fn, args, { value = 0n, label = fn, expectFail = false,
     await sleep(pause * 1000);
   }
 }
+/** Value attached to calls that reached the chain and were decided as errors. On Studionet it stays in the contract's balance. */
+const stuck = { insured: 0n, backerA: 0n, backerB: 0n, outsider: 0n };
+const stuckTotal = () => stuck.insured + stuck.backerA + stuck.backerB + stuck.outsider;
 const mustWork = async (who, fn, args, opts = {}) => {
   const s = await send(who, fn, args, opts);
   check(`${opts.label ?? fn} succeeds`, s.ok, s.status);
@@ -503,7 +507,7 @@ async function quiet({ need = 3, every = 4000, tries = 30 } = {}) {
   }
   return last;
 }
-const snapshot = async () => ({ insured: await balanceOf(insured.address), a: await balanceOf(backerA.address), b: await balanceOf(backerB.address) });
+const snapshot = async () => ({ insured: await balanceOf(insured.address), a: await balanceOf(backerA.address), b: await balanceOf(backerB.address), stuck: { ...stuck } });
 const delta = (after, before) => ({ insured: after.insured - before.insured, a: after.a - before.a, b: after.b - before.b });
 
 /**
@@ -514,8 +518,11 @@ async function checkMoney(pid, before, bondPaidBy = null) {
   const row = await getPolicy(pid);
   const bond = BigInt(row.bond);
   const paidIn = { insured: PREMIUM + (bondPaidBy === "insured" ? bond : 0n), backers: BigInt(row.funded) + (bondPaidBy === "backer" ? bond : 0n) };
-  const insuredNet = BigInt(row.insured_got) - paidIn.insured;
-  const backersNet = BigInt(row.backers_got) - paidIn.backers;
+  // value that went out with refused calls during this scenario stays in the contract, so it is not part of the policy's money
+  const kept = (now) => ({ insured: now.insured - before.stuck.insured, backers: now.backerA - before.stuck.backerA + (now.backerB - before.stuck.backerB) });
+  const keptNow = kept(stuck);
+  const insuredNet = BigInt(row.insured_got) - paidIn.insured - keptNow.insured;
+  const backersNet = BigInt(row.backers_got) - paidIn.backers - keptNow.backers;
   // read the balances again until they show what the policy says (up to about three minutes), then compare
   let after = await snapshot();
   for (let i = 0; i < 60; i++) {
@@ -526,7 +533,7 @@ async function checkMoney(pid, before, bondPaidBy = null) {
   }
   const d = delta(after, before);
   if (d.insured !== insuredNet || d.a + d.b !== backersNet) console.log(`  (balances still differ after waiting; contract holds ${fmt(await balanceOf(CONTRACT))}; the total check at the end tells whether any GEN is really missing)`);
-  check("the insured's balance moved by what the policy says", d.insured === insuredNet, `moved ${fmt(d.insured)}, expected ${fmt(insuredNet)}`);
+  check("the insured's balance moved by what the policy says", d.insured === insuredNet, `moved ${fmt(d.insured)}, expected ${fmt(insuredNet)} (premium ${fmt(row.premium)}, insured_got ${fmt(row.insured_got)}, kept with refused calls ${fmt(keptNow.insured)})`);
   check("the backers' balances moved by what the policy says", d.a + d.b === backersNet, `moved ${fmt(d.a + d.b)}, expected ${fmt(backersNet)}`);
   check("everything the policy held was paid out", BigInt(row.insured_got) + BigInt(row.backers_got) === BigInt(row.premium) + BigInt(row.funded) + bond, `${fmt(BigInt(row.insured_got) + BigInt(row.backers_got))}`);
   return row;
@@ -810,21 +817,23 @@ const b = await books();
 check("the contract's books balance at the end", b.balanced === true, `deposited ${fmt(b.deposited)}, paid ${fmt(b.paid)}, held ${fmt(b.held)}, bonds ${fmt(b.bonds)}`);
 check("no bond is left held", BigInt(b.bonds) === 0n, fmt(b.bonds));
 {
-  // The decisive money check does not depend on when a refund shows up: the three accounts and the contract together
-  // must hold exactly what they held at the start (the node may show a payout late, so read until it matches).
+  // Value attached to refused calls is not returned on Studionet: it stays in the contract and is not part of its books.
+  // So the contract's real balance must be exactly what its books hold plus that value, and the accounts together with
+  // the contract must hold what they held at the start plus what the (unfunded) outsider attached.
   const total = async () => {
     const s2 = await snapshot();
     const c2 = await balanceOf(CONTRACT);
-    return { sum: s2.insured + s2.a + s2.b + c2, contract: c2, s2 };
+    return { sum: s2.insured + s2.a + s2.b + c2, contract: c2 };
   };
-  const want = start.insured + start.a + start.b + startContract;
+  const want = start.insured + start.a + start.b + startContract + stuck.outsider;
   let t = await total();
-  for (let i = 0; i < 60 && t.sum !== want; i++) {
+  for (let i = 0; i < 20 && t.sum !== want; i++) {
     await sleep(3000);
     t = await total();
   }
+  note(`value attached to refused calls and kept by the contract: ${fmt(stuckTotal())} (insured ${fmt(stuck.insured)}, backer A ${fmt(stuck.backerA)}, backer B ${fmt(stuck.backerB)}, outsider ${fmt(stuck.outsider)})`);
   check("no GEN was lost or created: insured + backers + contract hold the same total as at the start", t.sum === want, `difference ${fmt(t.sum - want)}`);
-  check("the contract's own balance matches its books (nothing held, nothing stuck)", t.contract - startContract === BigInt(b.held) + BigInt(b.bonds), `contract balance changed by ${fmt(t.contract - startContract)}, books say held ${fmt(b.held)} + bonds ${fmt(b.bonds)}`);
+  check("the contract's own balance is its books plus the value attached to refused calls", t.contract - startContract === BigInt(b.held) + BigInt(b.bonds) + stuckTotal(), `contract balance changed by ${fmt(t.contract - startContract)}; books hold ${fmt(BigInt(b.held) + BigInt(b.bonds))}, refused calls ${fmt(stuckTotal())}`);
 }
 current.status = current.checks.every((c) => c.ok) ? "passed" : "failed";
 
