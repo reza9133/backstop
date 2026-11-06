@@ -525,6 +525,7 @@ async function checkMoney(pid, before, bondPaidBy = null) {
     after = await snapshot();
   }
   const d = delta(after, before);
+  if (d.insured !== insuredNet || d.a + d.b !== backersNet) console.log(`  (balances still differ after waiting; contract holds ${fmt(await balanceOf(CONTRACT))}; the total check at the end tells whether any GEN is really missing)`);
   check("the insured's balance moved by what the policy says", d.insured === insuredNet, `moved ${fmt(d.insured)}, expected ${fmt(insuredNet)}`);
   check("the backers' balances moved by what the policy says", d.a + d.b === backersNet, `moved ${fmt(d.a + d.b)}, expected ${fmt(backersNet)}`);
   check("everything the policy held was paid out", BigInt(row.insured_got) + BigInt(row.backers_got) === BigInt(row.premium) + BigInt(row.funded) + bond, `${fmt(BigInt(row.insured_got) + BigInt(row.backers_got))}`);
@@ -784,8 +785,10 @@ console.log(`contract ${CONTRACT}`);
 console.log(`reports: ${base}.{html,md,json}`);
 
 let start;
+let startContract = 0n;
 try {
   start = await snapshot();
+  startContract = await balanceOf(CONTRACT);
 } catch (err) {
   die(`Cannot reach the Studionet RPC (${RPC}): ${String(err?.cause?.message ?? err?.message ?? err)}`);
 }
@@ -806,6 +809,23 @@ report.statsAfter = await stats();
 const b = await books();
 check("the contract's books balance at the end", b.balanced === true, `deposited ${fmt(b.deposited)}, paid ${fmt(b.paid)}, held ${fmt(b.held)}, bonds ${fmt(b.bonds)}`);
 check("no bond is left held", BigInt(b.bonds) === 0n, fmt(b.bonds));
+{
+  // The decisive money check does not depend on when a refund shows up: the three accounts and the contract together
+  // must hold exactly what they held at the start (the node may show a payout late, so read until it matches).
+  const total = async () => {
+    const s2 = await snapshot();
+    const c2 = await balanceOf(CONTRACT);
+    return { sum: s2.insured + s2.a + s2.b + c2, contract: c2, s2 };
+  };
+  const want = start.insured + start.a + start.b + startContract;
+  let t = await total();
+  for (let i = 0; i < 60 && t.sum !== want; i++) {
+    await sleep(3000);
+    t = await total();
+  }
+  check("no GEN was lost or created: insured + backers + contract hold the same total as at the start", t.sum === want, `difference ${fmt(t.sum - want)}`);
+  check("the contract's own balance matches its books (nothing held, nothing stuck)", t.contract - startContract === BigInt(b.held) + BigInt(b.bonds), `contract balance changed by ${fmt(t.contract - startContract)}, books say held ${fmt(b.held)} + bonds ${fmt(b.bonds)}`);
+}
 current.status = current.checks.every((c) => c.ok) ? "passed" : "failed";
 
 report.finished = true;
