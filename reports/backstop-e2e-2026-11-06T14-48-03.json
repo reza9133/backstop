@@ -1,0 +1,1860 @@
+{
+  "title": "Backstop live test on Studionet",
+  "network": "studionet",
+  "rpc": "https://studio.genlayer.com/api",
+  "contract": "0xaAFa4C63F2a2609b050Eb04E333ab909197985d1",
+  "startedAt": "2026-11-06T14:48:03.771Z",
+  "finishedAt": "2026-11-06T15:11:31.588Z",
+  "finished": true,
+  "accounts": {
+    "insured": "0x5D10a1B3Cf05e993fD976c0831a3B671eAF9C8d8",
+    "backerA": "0x619Cb694D2e8DE2e1bb77e36825FfBE9000525EA",
+    "backerB": "0x84DB1E223441930b39AE9561cC71FF5865400E85",
+    "outsider": "0x538BAA2e7BEC3ca71623e22119472417AFe6718C"
+  },
+  "inputs": {
+    "scenarios": [
+      "basics",
+      "adversarial",
+      "vet",
+      "lifecycle",
+      "contest",
+      "lapse"
+    ],
+    "source": "https://www.iana.org/help/example-domains",
+    "cover": "20000000000000000",
+    "premium": "4000000000000000",
+    "tiers": [
+      2500,
+      6000,
+      10000
+    ]
+  },
+  "statsBefore": {
+    "policies": 0,
+    "settled": 0,
+    "triggered": 0,
+    "refused": 0,
+    "lapsed": 0,
+    "voided": 0,
+    "cancelled": 0,
+    "contests": 0,
+    "overturned": 0,
+    "checks": 0,
+    "volume": "0",
+    "earned": "0",
+    "deposited": "0",
+    "paid": "0",
+    "bonds": "0"
+  },
+  "statsAfter": {
+    "policies": 8,
+    "settled": 2,
+    "triggered": 0,
+    "refused": 2,
+    "lapsed": 1,
+    "voided": 0,
+    "cancelled": 3,
+    "contests": 1,
+    "overturned": 0,
+    "checks": 11,
+    "volume": "0",
+    "earned": "9000000000000000",
+    "deposited": "83000000000000000",
+    "paid": "83000000000000000",
+    "bonds": "0"
+  },
+  "verdicts": [
+    {
+      "scenario": "vet",
+      "stage": "wording check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The wording is objective, measurable from the named page text, complete by level, and the evidence shows all three phrases still present."
+    },
+    {
+      "scenario": "vet",
+      "stage": "wording check",
+      "result": "fail",
+      "flags": [
+        "injection",
+        "subjective",
+        "unverifiable",
+        "vague"
+      ],
+      "reason": "Terms are subjective, vague, and cannot be verified against the page."
+    },
+    {
+      "scenario": "vet",
+      "stage": "wording check",
+      "result": "fail",
+      "flags": [
+        "already_met"
+      ],
+      "reason": "The page currently shows all three required phrases, meaning the event has already happened."
+    },
+    {
+      "scenario": "lifecycle",
+      "stage": "wording check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The trigger uses exact phrases on the named page, defines all levels clearly, and the evidence still contains all three phrases."
+    },
+    {
+      "scenario": "lifecycle",
+      "stage": "wording check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The trigger uses exact phrases on the named page, defines all levels clearly, and the evidence still contains all three phrases."
+    },
+    {
+      "scenario": "lifecycle",
+      "stage": "inception check",
+      "result": "pass",
+      "flags": [],
+      "reason": "页面当前仍包含三个指定短语，因此按明确的逐级条件，尚未达到任何赔付等级。"
+    },
+    {
+      "scenario": "lifecycle",
+      "stage": "wording check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The trigger uses exact phrases on the named page, defines all levels clearly, and the evidence still contains all three phrases."
+    },
+    {
+      "scenario": "lifecycle",
+      "stage": "inception check",
+      "result": "pass",
+      "flags": [],
+      "reason": "页面当前仍包含三个指定短语，因此按明确的逐级条件，尚未达到任何赔付等级。"
+    },
+    {
+      "scenario": "lifecycle",
+      "stage": "reading",
+      "result": "level 0",
+      "flags": [
+        "undated"
+      ],
+      "reason": "The visible text still includes all three phrases, and there is no dated change within the cover period."
+    },
+    {
+      "scenario": "contest",
+      "stage": "wording check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The terms are objective and complete, and none of the trigger phrases have been removed from the source text."
+    },
+    {
+      "scenario": "contest",
+      "stage": "wording check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The terms are objective and complete, and none of the trigger phrases have been removed from the source text."
+    },
+    {
+      "scenario": "contest",
+      "stage": "inception check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The visible page text still contains \"Example Domains\", \"example.com\", and \"IANA\", so no payout level has already been reached."
+    },
+    {
+      "scenario": "contest",
+      "stage": "wording check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The terms are objective and complete, and none of the trigger phrases have been removed from the source text."
+    },
+    {
+      "scenario": "contest",
+      "stage": "inception check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The visible page text still contains \"Example Domains\", \"example.com\", and \"IANA\", so no payout level has already been reached."
+    },
+    {
+      "scenario": "contest",
+      "stage": "reading",
+      "result": "level 0",
+      "flags": [
+        "outside_window"
+      ],
+      "reason": "The page still shows all three phrases, and the only visible date is 2026-09-27, which is outside the cover period."
+    },
+    {
+      "scenario": "contest",
+      "stage": "wording check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The terms are objective and complete, and none of the trigger phrases have been removed from the source text."
+    },
+    {
+      "scenario": "contest",
+      "stage": "inception check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The visible page text still contains \"Example Domains\", \"example.com\", and \"IANA\", so no payout level has already been reached."
+    },
+    {
+      "scenario": "contest",
+      "stage": "reading",
+      "result": "level 0",
+      "flags": [
+        "outside_window"
+      ],
+      "reason": "The page still shows all three phrases, and the only visible date is 2026-09-27, which is outside the cover period."
+    },
+    {
+      "scenario": "contest",
+      "stage": "appeal",
+      "result": "level 0 (not moved)",
+      "flags": [],
+      "reason": "The page text contains all three exact phrases 'Example Domains', 'example.com', and 'IANA'."
+    },
+    {
+      "scenario": "lapse",
+      "stage": "wording check",
+      "result": "pass",
+      "flags": [],
+      "reason": "The trigger is objective and complete, and the cited page text still includes all three phrases so no level is reached yet."
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "basics",
+      "note": "write a policy, read every view, cancel a draft",
+      "status": "passed",
+      "steps": [
+        {
+          "label": "create_policy",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x37d0460cfd0bf5ec5c0051f7a14944033427f30053e4e1f05bd889e3eddabd63",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "cancel_policy",
+          "fn": "cancel_policy",
+          "caller": "insured",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x15586176b540999f543c4a51438a40c6f5cfa912bc16bf7b618d2df5b16ffb48",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        }
+      ],
+      "checks": [
+        {
+          "name": "no refund or payout of an earlier scenario is still on its way",
+          "ok": true,
+          "detail": "every booked transfer has reached its recipient"
+        },
+        {
+          "name": "limits are readable",
+          "ok": true,
+          "detail": "{\"min_cover\":\"10000000000000000\",\"min_lot\":\"1000000000000000\",\"min_rate_bps\":200,\"max_rate_bps\":9000,\"max_backers\":12,\"m"
+        },
+        {
+          "name": "the premium range is 2% to 90% of the cover",
+          "ok": true,
+          "detail": "0.0004 GEN to 0.018 GEN"
+        },
+        {
+          "name": "create_policy succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the new policy is the newest one of the insured",
+          "ok": true,
+          "detail": "id 0, policies before 0"
+        },
+        {
+          "name": "the policy is stored as written",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "the policy belongs to the insured",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "the bond due is 5% of the cover with a floor",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "the outlook shows every level",
+          "ok": true,
+          "detail": "0:0 GEN 1:0.005 GEN 2:0.012 GEN 3:0.02 GEN"
+        },
+        {
+          "name": "the policy is the first in the newest-first list",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "the books balance with a draft held",
+          "ok": true,
+          "detail": "deposited 0.004 GEN, paid 0 GEN, held 0.004 GEN, bonds 0 GEN"
+        },
+        {
+          "name": "cancel_policy succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the draft is cancelled",
+          "ok": true,
+          "detail": "CANCELLED"
+        },
+        {
+          "name": "the premium came back to the wei",
+          "ok": true,
+          "detail": "0.3 GEN -> 0.3 GEN"
+        },
+        {
+          "name": "the books balance",
+          "ok": true,
+          "detail": "deposited 0.004 GEN, paid 0.004 GEN, held 0 GEN, bonds 0 GEN"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "name": "adversarial",
+      "note": "calls that must be refused and must not move any money",
+      "status": "passed",
+      "steps": [
+        {
+          "label": "create_policy (a draft to attack)",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xa5926923e9e2d1e8f01aec57f5f7ddd7b3a3d00e77545c43ab3e1233e332c288",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "create_policy with a cover below the minimum",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xd25f731e478dd51467ff45fab93a1f974e2251026c676acb9a1c370aab3f7bae",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "create_policy with a premium below 2%",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "399999999999999",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x60bdd8c75a3d0960fec5aaea453e1fd268d73d3d91c08683ae362cb0a7980fef",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "create_policy with a premium above 90%",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "20000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xca0765b65ff9dead22155727ef77ca79abe9c3b178eaf7a97ae9974c3a743876",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "create_policy with tiers that do not rise",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xc015c5247efe6b5fbe1dddacbbb76223c886c3ee9f279576497f709b1c7658f8",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "create_policy with a title that is too short",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xf0d1746ea0730394e7bc413bd9a3610da6ac6f57bb8f262a6af0b746c1fd92d0",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "create_policy with a private source",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x5c228b84fddade1be8498a92311a2eae3b54a38504da4ad3ca83c46c4dd79ce3",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "create_policy with steering terms",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xac335563802adc2121f12ab7bb9298ae9b6488acb1c9e59aea39b4add07316d7",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "create_policy with a backing time of 5 seconds",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x0b09e2528643c8556cec6eb281327e59d09a01d4dbc0b6b51b16bb2ee1abf5f5",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "back a draft",
+          "fn": "back",
+          "caller": "insured",
+          "value": "12000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xf303088bc383ac96638ddeaf344946c21ffe4d376aae4e0ab20c9c2368d6a6e2",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "back a draft (backer)",
+          "fn": "back",
+          "caller": "backerA",
+          "value": "12000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x9b2a4ac407960167b85bf695e335c4eb69d891da96cf070e0c3e4c138e649f24",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "bind a draft",
+          "fn": "bind",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xefa1c588fda077533e139ae68c7536898c3a6f88d74c0492986a8aea78136312",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "resolve a draft",
+          "fn": "resolve",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xf6a053beb95a3f823046b85f79d69c77cb4936cd913475cece8ddc3f1eb6d420",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "settle a draft",
+          "fn": "settle",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xc25f0f99d3cd7dd2a9dbf894f59569b6566070dc3866cf00b180497cabf209c4",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "appeal a draft",
+          "fn": "appeal",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x097dc673eba8986c913159c9da859ea422b77db7ab2839c724bce1af934c7154",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "expire a draft",
+          "fn": "expire",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x3da168f771c533d7966f61ff7cfc4550a450d1f10aadbf9f672ef16e6dce061a",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "lapse a draft",
+          "fn": "lapse",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xe12a706adc86aa65818fa589411448eb9f6ff878e85f541b9a2446106d4f69dd",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "cancel by a stranger",
+          "fn": "cancel_policy",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xc1f67dc3c838e6270834d14b4e22c276ee7b101a1457e8e1c101b534888e20fa",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "unback with nothing committed",
+          "fn": "unback",
+          "caller": "backerA",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x5709cf8bef159f4c51676ae3198d083dd506fc8227e9a6f8435297a5b86d2569",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "contest a draft",
+          "fn": "contest",
+          "caller": "insured",
+          "value": "1000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x83dace582ab234a033fadfc603e862f5651ca5862daeb1ed92aa83fc0e8f2a7d",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "bind an unknown policy",
+          "fn": "bind",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xf577ec169cc89c8a576ab21cb781c76048968fc681bad2371f058866a34653d5",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "cancel_policy (clean up)",
+          "fn": "cancel_policy",
+          "caller": "insured",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x1691d489a2ce4c8e2a62d37447d839d5b30048520e192430c5aef963eb1276be",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        }
+      ],
+      "checks": [
+        {
+          "name": "no refund or payout of an earlier scenario is still on its way",
+          "ok": true,
+          "detail": "every booked transfer has reached its recipient"
+        },
+        {
+          "name": "create_policy (a draft to attack) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the new policy is the newest one of the insured",
+          "ok": true,
+          "detail": "id 1, policies before 1"
+        },
+        {
+          "name": "create_policy with a cover below the minimum is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "create_policy with a cover below the minimum changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "create_policy with a premium below 2% is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "create_policy with a premium below 2% changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "create_policy with a premium above 90% is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "create_policy with a premium above 90% changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "create_policy with tiers that do not rise is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "create_policy with tiers that do not rise changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "create_policy with a title that is too short is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "create_policy with a title that is too short changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "create_policy with a private source is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "create_policy with a private source changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "create_policy with steering terms is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "create_policy with steering terms changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "create_policy with a backing time of 5 seconds is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "create_policy with a backing time of 5 seconds changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "back a draft is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "back a draft changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "back a draft (backer) is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "back a draft (backer) changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "bind a draft is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "bind a draft changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "resolve a draft is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "resolve a draft changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "settle a draft is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "settle a draft changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "appeal a draft is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "appeal a draft changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "expire a draft is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "expire a draft changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "lapse a draft is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "lapse a draft changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "cancel by a stranger is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "cancel by a stranger changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "unback with nothing committed is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "unback with nothing committed changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "contest a draft is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "contest a draft changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "bind an unknown policy is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "bind an unknown policy changed no totals",
+          "ok": true,
+          "detail": "8000000000000000/4000000000000000/0/2/0"
+        },
+        {
+          "name": "cancel_policy (clean up) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the books balance",
+          "ok": true,
+          "detail": "deposited 0.008 GEN, paid 0.008 GEN, held 0 GEN, bonds 0 GEN"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "name": "vet",
+      "note": "the real AI checks a clear wording, a vague one and one whose event already happened",
+      "status": "passed",
+      "steps": [
+        {
+          "label": "create_policy (clear)",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xc9251c0e216164036e410e3bfff43f5e957194f274db23b017a9f52a59b0d346",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "vet",
+          "fn": "vet",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xfe41054ac0576ded456de8e18d6aebf57cb9741a6b475fa1a649f8b087d69bc6",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "cancel_policy (clear, clean up)",
+          "fn": "cancel_policy",
+          "caller": "insured",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xb07c388d5f5d1745f8d93afd6523cfb1c5d64a2b11cb7515538d16ad7d66ba74",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "create_policy (vague)",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x59bfd7eacf92744b78bf0764c6041e406e6ca1b2569c84c3610ebfcbb10457e4",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "vet",
+          "fn": "vet",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x5b9756d45f7947922fbb456c052cc7aefd38102b6a2889431c615d2530a64672",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "create_policy (met)",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x82ff6c64bb975239f11e9291c81f0a98b7e5644e4ad6d01a39cee2da359bee7f",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "vet",
+          "fn": "vet",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xb2dadbfcfc1984a7e67342caf51faca8d2c3deb47b6f7d6acbbd448d7b5f4fa3",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        }
+      ],
+      "checks": [
+        {
+          "name": "no refund or payout of an earlier scenario is still on its way",
+          "ok": true,
+          "detail": "every booked transfer has reached its recipient"
+        },
+        {
+          "name": "nothing is still on its way before the clear wording is tried",
+          "ok": true,
+          "detail": "every booked transfer has reached its recipient"
+        },
+        {
+          "name": "create_policy (clear) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the new policy is the newest one of the insured",
+          "ok": true,
+          "detail": "id 2, policies before 2"
+        },
+        {
+          "name": "vet 2 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the clear wording was decided (open, refused or still waiting)",
+          "ok": true,
+          "detail": "OPEN"
+        },
+        {
+          "name": "an open policy has its backing deadline",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "the premium of the cancelled clear policy came back",
+          "ok": true,
+          "detail": "0.242600000000000001 GEN -> 0.242600000000000001 GEN"
+        },
+        {
+          "name": "nothing is still on its way before the vague wording is tried",
+          "ok": true,
+          "detail": "every booked transfer has reached its recipient"
+        },
+        {
+          "name": "create_policy (vague) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the new policy is the newest one of the insured",
+          "ok": true,
+          "detail": "id 3, policies before 3"
+        },
+        {
+          "name": "vet 3 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the vague wording was decided (open, refused or still waiting)",
+          "ok": true,
+          "detail": "REFUSED"
+        },
+        {
+          "name": "the premium of the refused vague policy came back",
+          "ok": true,
+          "detail": "0.242600000000000001 GEN -> 0.242600000000000001 GEN"
+        },
+        {
+          "name": "a refused policy can no longer be backed",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "nothing is still on its way before the met wording is tried",
+          "ok": true,
+          "detail": "every booked transfer has reached its recipient"
+        },
+        {
+          "name": "create_policy (met) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the new policy is the newest one of the insured",
+          "ok": true,
+          "detail": "id 4, policies before 4"
+        },
+        {
+          "name": "vet 4 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the met wording was decided (open, refused or still waiting)",
+          "ok": true,
+          "detail": "REFUSED"
+        },
+        {
+          "name": "the premium of the refused met policy came back",
+          "ok": true,
+          "detail": "0.242600000000000001 GEN -> 0.242600000000000001 GEN"
+        },
+        {
+          "name": "a refused policy can no longer be backed",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "the books balance",
+          "ok": true,
+          "detail": "deposited 0.02 GEN, paid 0.02 GEN, held 0 GEN, bonds 0 GEN"
+        }
+      ],
+      "notes": [
+        "clear wording (usually passes): OPEN, flags []",
+        "vague wording (should be refused as vague or subjective): REFUSED, flags [injection, subjective, unverifiable, vague]",
+        "met wording (should be refused: the page already shows the event): REFUSED, flags [already_met]"
+      ]
+    },
+    {
+      "name": "lifecycle",
+      "note": "vet, back, bind, wait for the end of the cover, read, settle; the money is checked to the wei",
+      "status": "passed",
+      "steps": [
+        {
+          "label": "create_policy",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xf5e9855f52ecad636449bed50244d1a6dac486b2bbe30e6a3b80d7d81493b147",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "vet",
+          "fn": "vet",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xe51aff7c780c22aedb9c9b7598ed714295362b2c44ae1355d19a740ffe04e015",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "back (backer A)",
+          "fn": "back",
+          "caller": "backerA",
+          "value": "12000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x9debe2c0d11a7eb2bbe4425c9f609062b7bf0a2a751e5bb2131ddcde8db629b9",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "back (backer B)",
+          "fn": "back",
+          "caller": "backerB",
+          "value": "8000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x490959b5f520df0ff5ccb4cc8901ae1eedeb6c9718b7311e24b6b5b998b273e0",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "bind",
+          "fn": "bind",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x4936f8ff923634ee0e95dedeb27cee6d8f6d5140c55628c4cda36d9f9182075b",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "resolve before the cover ended",
+          "fn": "resolve",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x44b7bf52729f46391fd1e01eb4313af640ce448b190c7bc6176502d6e2f0f299",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "settle before there is a reading",
+          "fn": "settle",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xd8302d8130c1294eeaa099cda2a6f7f3bb70861ab986058b02aa1f3b07d62dff",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "resolve",
+          "fn": "resolve",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x34c032f431b1b64bd2b324007553425c40de7e53f29a60fb507c220fccbb86d6",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "settle while the reading can still be contested",
+          "fn": "settle",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x51cc286e2ac76f2fbadd095c9573cf58ff910efb452de92484ba5a30e0f42a36",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "settle",
+          "fn": "settle",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x6b53af001bf92e562707fc5cd430412b05bce7c6b775028d8eb8e518af33fc72",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "settle a second time",
+          "fn": "settle",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x47c82df8304c072106e2dae83eee6c6217b7ac0ccbcefb02656163774f97255d",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        }
+      ],
+      "checks": [
+        {
+          "name": "no refund or payout of an earlier scenario is still on its way",
+          "ok": true,
+          "detail": "every booked transfer has reached its recipient"
+        },
+        {
+          "name": "create_policy succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the new policy is the newest one of the insured",
+          "ok": true,
+          "detail": "id 5, policies before 5"
+        },
+        {
+          "name": "vet 5 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "back (backer A) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "back (backer B) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the policy is fully backed",
+          "ok": true,
+          "detail": "FILLED"
+        },
+        {
+          "name": "bind 5 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the cover period runs from the bind",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "resolve before the cover ended is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "resolve before the cover ended changed no totals",
+          "ok": true,
+          "detail": "44000000000000000/20000000000000000/0/6/0"
+        },
+        {
+          "name": "settle before there is a reading is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "settle before there is a reading changed no totals",
+          "ok": true,
+          "detail": "44000000000000000/20000000000000000/0/6/0"
+        },
+        {
+          "name": "resolve 5 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "a reading is on record",
+          "ok": true,
+          "detail": "READ"
+        },
+        {
+          "name": "a level above 0 carries a quote of at least 12 characters",
+          "ok": true,
+          "detail": "level 0"
+        },
+        {
+          "name": "settle while the reading can still be contested is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "settle while the reading can still be contested changed no totals",
+          "ok": true,
+          "detail": "44000000000000000/20000000000000000/0/6/0"
+        },
+        {
+          "name": "settle succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the policy is settled",
+          "ok": true,
+          "detail": "SETTLED"
+        },
+        {
+          "name": "the insured's share is cover x tier of the final level",
+          "ok": true,
+          "detail": "level 0: 0 GEN expected 0 GEN"
+        },
+        {
+          "name": "the backers got the rest of the cover and the premium",
+          "ok": true,
+          "detail": "0.024 GEN"
+        },
+        {
+          "name": "the insured's balance moved by what the policy says",
+          "ok": true,
+          "detail": "moved -0.004 GEN, expected -0.004 GEN (premium 0.004 GEN, insured_got 0 GEN, kept with refused calls 0 GEN)"
+        },
+        {
+          "name": "the backers' balances moved by what the policy says",
+          "ok": true,
+          "detail": "moved 0.004 GEN, expected 0.004 GEN"
+        },
+        {
+          "name": "everything the policy held was paid out",
+          "ok": true,
+          "detail": "0.024 GEN"
+        },
+        {
+          "name": "settle a second time is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "settle a second time changed no totals",
+          "ok": true,
+          "detail": "44000000000000000/44000000000000000/0/6/1"
+        },
+        {
+          "name": "the books balance",
+          "ok": true,
+          "detail": "deposited 0.044 GEN, paid 0.044 GEN, held 0 GEN, bonds 0 GEN"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "name": "contest",
+      "note": "a party contests the reading, posts a bond, and the appeal reading decides",
+      "status": "passed",
+      "steps": [
+        {
+          "label": "create_policy",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x3ad3f466f38b33a57e11dae5f1c22181c161ade54596adae14aad4b019ea71c1",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "vet",
+          "fn": "vet",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xc5e5c496d0c3c5a50825d4fb156dcdee77fd25b981213e96270f4e0bbfd804a8",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "back (backer A)",
+          "fn": "back",
+          "caller": "backerA",
+          "value": "12000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x3421ec872b22ad0ba2416bda1f5b8b209e10e3c93d3c5580ed7a9c39dbdd3b50",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "back (backer B)",
+          "fn": "back",
+          "caller": "backerB",
+          "value": "8000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x7403cf71dbe8e19b3e069628e7e09c3faa7a8346a4fa88db1b195bb9c9467141",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "bind",
+          "fn": "bind",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x222394cd74f04c0641a951c7a54039e217deb386fd30df7712d8a77d6b335ebf",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "resolve",
+          "fn": "resolve",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x06b32f467944f5414fb09b4fbc0543520f4d5aff0b33437afd6f90e064b8cc97",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "contest by a stranger",
+          "fn": "contest",
+          "caller": "outsider",
+          "value": "1000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x07f046cbfd2297a85e2567b1b60c99ab2000503506c8b3d031a390f71748c262",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "contest with a claim that is too short",
+          "fn": "contest",
+          "caller": "insured",
+          "value": "1000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x165fbc28be56c36bebc8fbe1e532f236d1cfc8d7ae3388e9ef82780980eeb95e",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "contest with a bond that is too small",
+          "fn": "contest",
+          "caller": "insured",
+          "value": "999999999999999",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x1e61b8a4d2e649a2a3d8306eae1599c2c48fea7f7ef93537395311cd4f2fbdcf",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "contest (insured)",
+          "fn": "contest",
+          "caller": "insured",
+          "value": "1000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x1cb4496fb80c0a2b251e49e0b2f0d1e6d00e1e2aa9826fa9f229d1a0807e11f1",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "settle a contested policy",
+          "fn": "settle",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x5f7fda4e9a21d82e12ee8f37ced7d8f5dccea8741f8dd22a5c7cf0b763570fa0",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "appeal",
+          "fn": "appeal",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xb56e971e52f275e8dffe3b0085309647841a8cec31a0257dbbf1f8fea9033a2f",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        }
+      ],
+      "checks": [
+        {
+          "name": "no refund or payout of an earlier scenario is still on its way",
+          "ok": true,
+          "detail": "every booked transfer has reached its recipient"
+        },
+        {
+          "name": "create_policy succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the new policy is the newest one of the insured",
+          "ok": true,
+          "detail": "id 6, policies before 6"
+        },
+        {
+          "name": "vet 6 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "back (backer A) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "back (backer B) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the policy is fully backed",
+          "ok": true,
+          "detail": "FILLED"
+        },
+        {
+          "name": "bind 6 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "resolve 6 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "contest by a stranger is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "contest by a stranger changed no totals",
+          "ok": true,
+          "detail": "68000000000000000/44000000000000000/0/7/1"
+        },
+        {
+          "name": "contest with a claim that is too short is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "contest with a claim that is too short changed no totals",
+          "ok": true,
+          "detail": "68000000000000000/44000000000000000/0/7/1"
+        },
+        {
+          "name": "contest with a bond that is too small is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "contest with a bond that is too small changed no totals",
+          "ok": true,
+          "detail": "68000000000000000/44000000000000000/0/7/1"
+        },
+        {
+          "name": "contest (insured) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the policy is contested and holds the bond",
+          "ok": true,
+          "detail": "CONTESTED"
+        },
+        {
+          "name": "settle a contested policy is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "settle a contested policy changed no totals",
+          "ok": true,
+          "detail": "69000000000000000/44000000000000000/1000000000000000/7/1"
+        },
+        {
+          "name": "the books count the bond",
+          "ok": true,
+          "detail": "0.001 GEN"
+        },
+        {
+          "name": "appeal 6 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the contested policy is settled",
+          "ok": true,
+          "detail": "SETTLED"
+        },
+        {
+          "name": "the bond is no longer held",
+          "ok": true,
+          "detail": "3"
+        },
+        {
+          "name": "the appeal records whether it moved the outcome",
+          "ok": true,
+          "detail": "false"
+        },
+        {
+          "name": "the bond went back exactly when the appeal moved the outcome (or could not be read)",
+          "ok": true,
+          "detail": "moved false"
+        },
+        {
+          "name": "the appeal can only move the level in the direction the contesting party argued",
+          "ok": true,
+          "detail": "first 0, final 0"
+        },
+        {
+          "name": "without a move the first level stands",
+          "ok": true,
+          "detail": "first 0, final 0"
+        },
+        {
+          "name": "the insured received the payout of the final level plus any bond that came to it",
+          "ok": true,
+          "detail": "0 GEN"
+        },
+        {
+          "name": "the insured's balance moved by what the policy says",
+          "ok": true,
+          "detail": "moved -0.006999999999999999 GEN, expected -0.006999999999999999 GEN (premium 0.004 GEN, insured_got 0 GEN, kept with refused calls 0.001999999999999999 GEN)"
+        },
+        {
+          "name": "the backers' balances moved by what the policy says",
+          "ok": true,
+          "detail": "moved 0.005 GEN, expected 0.005 GEN"
+        },
+        {
+          "name": "everything the policy held was paid out",
+          "ok": true,
+          "detail": "0.025 GEN"
+        },
+        {
+          "name": "the books balance",
+          "ok": true,
+          "detail": "deposited 0.069 GEN, paid 0.069 GEN, held 0 GEN, bonds 0 GEN"
+        },
+        {
+          "name": "no bond is left held",
+          "ok": true,
+          "detail": "0 GEN"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "name": "lapse",
+      "note": "a policy that is only half backed: unback, wait for the deadline, lapse; everything goes back",
+      "status": "passed",
+      "steps": [
+        {
+          "label": "create_policy (short backing time)",
+          "fn": "create_policy",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x0d620ff9183f5d7f1f84bf6175deb898c988936dcc3280ef32b8fbd16139bdec",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "vet",
+          "fn": "vet",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x6a84076ba67e677f9cce2f20d7160b5916fa3a31fd49c74f3d4ad1dba58019e5",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "back (backer A)",
+          "fn": "back",
+          "caller": "backerA",
+          "value": "6000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xd1460dc7382678583d3c0a7188109ec3550a9ff2ae4b627d52abb4d83f46716f",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "back (backer B)",
+          "fn": "back",
+          "caller": "backerB",
+          "value": "4000000000000000",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0x4852404c0566a8269128c9240c3986aa7eb6b7502fca08292665311303babba8",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "unback leaving less than a lot",
+          "fn": "unback",
+          "caller": "backerA",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0xc7963d9a8e3e60e5c62c1e5ace614538dce0ece51ea3237719ad74fbd988ba24",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "unback (part of it)",
+          "fn": "unback",
+          "caller": "backerA",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xea86899533a55bcf64fd840c15a7e24d1f9c73233341f70d547b1c53e76ade23",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        },
+        {
+          "label": "lapse before the deadline",
+          "fn": "lapse",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x9dabdb272bb3e570775f34a48f40b8b3b26d9750de40fe6939cb6f877a15fac3",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "the insured backs its own policy",
+          "fn": "back",
+          "caller": "insured",
+          "value": "4000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x537d1e700db98289ebfba3a9d5a2d2c3a1dff27a9478439df81660c0a1f41948",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "back after the backing time",
+          "fn": "back",
+          "caller": "backerB",
+          "value": "2000000000000000",
+          "expectedFail": true,
+          "attempt": 1,
+          "hash": "0x4cc618b52ee06254ea7cc7eb76efcdabc26110d67ceb2a741185f8e3db4607b4",
+          "ok": false,
+          "status": "ACCEPTED / ERROR"
+        },
+        {
+          "label": "lapse",
+          "fn": "lapse",
+          "caller": "outsider",
+          "value": "0",
+          "expectedFail": false,
+          "attempt": 1,
+          "hash": "0xc51742612ea009822c8733b478b22e766d02ee3bfe2839c3e36827d477182f3e",
+          "ok": true,
+          "status": "ACCEPTED / SUCCESS"
+        }
+      ],
+      "checks": [
+        {
+          "name": "no refund or payout of an earlier scenario is still on its way",
+          "ok": true,
+          "detail": "every booked transfer has reached its recipient"
+        },
+        {
+          "name": "create_policy (short backing time) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the new policy is the newest one of the insured",
+          "ok": true,
+          "detail": "id 7, policies before 7"
+        },
+        {
+          "name": "vet 7 was decided",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "back (backer A) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "back (backer B) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "unback leaving less than a lot is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "unback leaving less than a lot changed no totals",
+          "ok": true,
+          "detail": "83000000000000000/69000000000000000/0/8/2"
+        },
+        {
+          "name": "unback (part of it) succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the commitments add up",
+          "ok": true,
+          "detail": "0.008 GEN"
+        },
+        {
+          "name": "lapse before the deadline is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "lapse before the deadline changed no totals",
+          "ok": true,
+          "detail": "83000000000000000/71000000000000000/0/8/2"
+        },
+        {
+          "name": "the insured backs its own policy is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "the insured backs its own policy changed no totals",
+          "ok": true,
+          "detail": "83000000000000000/71000000000000000/0/8/2"
+        },
+        {
+          "name": "back after the backing time is refused by the contract",
+          "ok": true,
+          "detail": "ACCEPTED / ERROR"
+        },
+        {
+          "name": "back after the backing time changed no totals",
+          "ok": true,
+          "detail": "83000000000000000/71000000000000000/0/8/2"
+        },
+        {
+          "name": "lapse succeeds",
+          "ok": true,
+          "detail": "ACCEPTED / SUCCESS"
+        },
+        {
+          "name": "the policy lapsed",
+          "ok": true,
+          "detail": "LAPSED"
+        },
+        {
+          "name": "the insured's balance moved by what the policy says",
+          "ok": true,
+          "detail": "moved -0.004 GEN, expected -0.004 GEN (premium 0.004 GEN, insured_got 0.004 GEN, kept with refused calls 0.004 GEN)"
+        },
+        {
+          "name": "the backers' balances moved by what the policy says",
+          "ok": true,
+          "detail": "moved -0.002 GEN, expected -0.002 GEN"
+        },
+        {
+          "name": "everything the policy held was paid out",
+          "ok": true,
+          "detail": "0.012 GEN"
+        },
+        {
+          "name": "the books balance",
+          "ok": true,
+          "detail": "deposited 0.083 GEN, paid 0.083 GEN, held 0 GEN, bonds 0 GEN"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "name": "totals",
+      "note": "the contract's own books after the run",
+      "status": "passed",
+      "steps": [],
+      "checks": [
+        {
+          "name": "the contract's books balance at the end",
+          "ok": true,
+          "detail": "deposited 0.083 GEN, paid 0.083 GEN, held 0 GEN, bonds 0 GEN"
+        },
+        {
+          "name": "no bond is left held",
+          "ok": true,
+          "detail": "0 GEN"
+        },
+        {
+          "name": "no GEN was lost or created: insured + backers + contract hold the same total as at the start",
+          "ok": true,
+          "detail": "difference 0 GEN"
+        },
+        {
+          "name": "the contract's own balance is its books plus the value attached to refused calls",
+          "ok": true,
+          "detail": "contract balance changed by 0.078399999999999998 GEN; books hold 0 GEN, refused calls 0.078399999999999998 GEN"
+        }
+      ],
+      "notes": [
+        "value attached to refused calls and kept by the contract: 0.078399999999999998 GEN (insured 0.063399999999999998 GEN, backer A 0.012 GEN, backer B 0.002 GEN, outsider 0.001 GEN)"
+      ]
+    }
+  ],
+  "summary": {
+    "checks": 170,
+    "passed": 170,
+    "failed": 0,
+    "transactions": 64,
+    "skipped": 0
+  }
+}
