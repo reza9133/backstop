@@ -158,3 +158,14 @@ await client.writeContract({
 ## What the live run checks
 
 The AI is a real model, so the live run accepts any verdict it gives and checks what must hold for all of them: the books balance, every refused call changes nothing, the money that moved matches the state each policy ended in (to the wei), no payout above level 0 exists without a quote, and the contest bond ends in the right hands. Scenarios: `basics`, `adversarial`, `vet`, `lifecycle`, `contest`, `lapse`. If the model refuses the standard wording at the wording check, the run writes one more policy with a simpler wording so the later scenarios can still run (the refused policy's premium is returned and checked). Balances are read again for up to three minutes, because the node can report a balance a while after the transaction that moved it. The report has a table "What the AI said" with every verdict, flag, reason and quote.
+
+## Troubleshooting
+
+- **Local tests: many `ERROR at setup … HTTP Error 404` while downloading `genvm-universal.tar.xz`.** These are not test
+  failures: `genlayer-test` could not fetch the GenVM release it wants. `scripts/run-all.sh` runs only those tests again; if
+  it still fails, run `python3 -m pip install -U genlayer-test` or override the pinned release (default `v0.2.16`) with
+  `BACKSTOP_SDK_VERSION=<version>`.
+- **Live run: `Unexpected token '<', "<!DOCTYPE"`.** The Studionet gateway answered with an HTML error page. The script now
+  retries such answers; if a scenario still fails, run it alone: `node scripts/e2e.mjs --only lapse`.
+- **Live run: balance checks.** Refunds can show up on the node a few seconds late, so each scenario waits until the
+  balances stop moving before it takes its "before" snapshot.

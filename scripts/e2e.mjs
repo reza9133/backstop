@@ -136,11 +136,37 @@ const same = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
 
 // ---- the network clock (deadlines are judged by chain time) ----------------------------------------------------------
 
+/** True for failures of the network path (an HTML error page from the gateway, a 5xx, a dropped connection), not of the contract. */
+function transient(err) {
+  const m = `${err?.shortMessage ?? ""} ${err?.message ?? ""} ${err?.details ?? ""} ${err?.cause?.message ?? ""}`;
+  return /<!DOCTYPE|is not valid JSON|Unexpected token '<'|unknown RPC error|UnknownRpcError|fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up|\b50[0234]\b|Bad Gateway|Service Unavailable|Gateway Time-?out|HTTP request failed|rate limit|\b429\b/i.test(m);
+}
+/** Runs fn again (up to `tries` times, waiting longer each time) while it fails for a transient network reason. */
+async function retrying(fn, { tries = 6, wait = 4000 } = {}) {
+  for (let i = 1; ; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i >= tries || !transient(err)) throw err;
+      console.log(`  (network hiccup, trying again in ${Math.round((wait * i) / 1000)}s: ${String(err?.shortMessage ?? err?.message ?? err).slice(0, 80)})`);
+      await sleep(wait * i);
+    }
+  }
+}
 async function rpc(method, params) {
-  const res = await fetch(RPC, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
-  const body = await res.json();
-  if (body.error) throw new Error(`${method}: ${body.error.message ?? JSON.stringify(body.error)}`);
-  return { result: body.result, date: res.headers.get("date") };
+  return retrying(async () => {
+    const res = await fetch(RPC, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+    const text = await res.text();
+    if (!res.ok && text.trimStart().startsWith("<")) throw new Error(`${method}: HTTP ${res.status} (the gateway answered with an HTML page)`);
+    let body;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      throw new Error(`${method}: ${text.trimStart().startsWith("<") ? "Unexpected token '<' (HTML instead of JSON)" : "the answer is not valid JSON"}`);
+    }
+    if (body.error) throw new Error(`${method}: ${body.error.message ?? JSON.stringify(body.error)}`);
+    return { result: body.result, date: res.headers.get("date") };
+  });
 }
 let clockOffset = 0;
 async function syncClock() {
@@ -266,7 +292,7 @@ const skip = (why) => {
 
 let CONTRACT = null;
 const reader = sdk.createClient({ chain: studionet });
-const read = async (fn, args = []) => JSON.parse(String(await reader.readContract({ address: CONTRACT, functionName: fn, args })));
+const read = async (fn, args = []) => JSON.parse(String(await retrying(() => reader.readContract({ address: CONTRACT, functionName: fn, args }))));
 const getPolicy = (id) => read("get_policy", [id]);
 const stats = () => read("stats");
 const books = () => read("solvency");
@@ -291,10 +317,10 @@ async function send(who, fn, args, { value = 0n, label = fn, expectFail = false,
     const step = { label, fn, caller: who.name, value: value.toString(), expectedFail: expectFail, attempt };
     try {
       const fees = await quoteFees(who, call);
-      const hash = await who.client.writeContract(fees ? { ...call, fees } : call);
+      const hash = await retrying(() => who.client.writeContract(fees ? { ...call, fees } : call), { tries: 3 });
       step.hash = hash;
       const opts = { hash, retries: 400, interval: 3000 };
-      const receipt = typeof who.client.waitForDecision === "function" ? await who.client.waitForDecision(opts) : await who.client.waitForTransactionReceipt({ ...opts, status: "ACCEPTED" });
+      const receipt = await retrying(() => (typeof who.client.waitForDecision === "function" ? who.client.waitForDecision(opts) : who.client.waitForTransactionReceipt({ ...opts, status: "ACCEPTED" })));
       const out = outcome(receipt);
       step.ok = out.ok;
       step.status = out.status;
@@ -465,6 +491,18 @@ async function balanceBecomes(addr, expected, { tries = 60, every = 3000 } = {})
   return last;
 }
 
+/** Waits until the three balances stop moving (a refund can show up a few seconds after its transaction was decided). */
+async function quiet({ need = 3, every = 4000, tries = 30 } = {}) {
+  let last = null;
+  let same = 0;
+  for (let i = 0; i < tries && same < need; i++) {
+    const now = await snapshot();
+    same = last && now.insured === last.insured && now.a === last.a && now.b === last.b ? same + 1 : 1;
+    last = now;
+    if (same < need) await sleep(every);
+  }
+  return last;
+}
 const snapshot = async () => ({ insured: await balanceOf(insured.address), a: await balanceOf(backerA.address), b: await balanceOf(backerB.address) });
 const delta = (after, before) => ({ insured: after.insured - before.insured, a: after.a - before.a, b: after.b - before.b });
 
@@ -499,6 +537,7 @@ async function scenario(name, note_, fn) {
   console.log(`\n== ${name}: ${note_}`);
   flush();
   try {
+    await quiet(); // the "before" balances of a scenario must not still be waiting for a refund of the one before
     await fn();
     current.status = current.checks.every((c) => c.ok) ? "passed" : "failed";
   } catch (err) {
@@ -530,7 +569,7 @@ const scenarios = {
       const row = await getPolicy(pid);
       check("the policy is stored as written", row.state === S.DRAFT && row.title === TITLE && row.url === SOURCE_URL && BigInt(row.coverage) === COVER && BigInt(row.premium) === PREMIUM && row.tiers.join() === TIERS.join() && row.levels === 3);
       check("the policy belongs to the insured", same(row.insured, insured.address));
-      check("the bond due is 5% of the cover with a floor", BigInt(await reader.readContract({ address: CONTRACT, functionName: "bond_due", args: [pid] })) === bondFor(COVER));
+      check("the bond due is 5% of the cover with a floor", BigInt(await retrying(() => reader.readContract({ address: CONTRACT, functionName: "bond_due", args: [pid] }))) === bondFor(COVER));
       const outlook = await read("outlook", [pid]);
       check("the outlook shows every level", outlook.length === 4 && BigInt(outlook[2].insured) === (COVER * 6000n) / 10_000n && BigInt(outlook[3].backers) === PREMIUM, outlook.map((o) => `${o.level}:${fmt(o.insured)}`).join(" "));
       const listed = await read("list_policies", [0, 5]);
@@ -600,7 +639,10 @@ const scenarios = {
           check("a refused policy can no longer be backed", row.insured_got === PREMIUM.toString() && row.backers_got === "0");
         }
         if (row.state === S.OPEN) check("an open policy has its backing deadline", row.backing_until > netNow() - 60);
-        if (row.state === S.OPEN || row.state === S.DRAFT) await send(insured, "cancel_policy", [pid], { label: `cancel_policy (${c.key}, clean up)` });
+        if (row.state === S.OPEN || row.state === S.DRAFT) {
+          const s = await send(insured, "cancel_policy", [pid], { label: `cancel_policy (${c.key}, clean up)` });
+          if (s.ok) await balanceBecomes(insured.address, before);
+        }
       }
       await solvent();
     }),

@@ -26,7 +26,25 @@ if [ "${SKIP_LOCAL:-0}" != "1" ]; then
   fi
 
   echo; echo "== local test suite (no network)"
-  if python3 -m pytest -q --junitxml="reports/local-tests-$STAMP.xml"; then LOCAL_STATUS="passed"; else LOCAL_STATUS="FAILED"; fi
+  LOCAL_LOG="reports/local-tests-$STAMP.log"
+  if python3 -m pytest -q --junitxml="reports/local-tests-$STAMP.xml" 2>&1 | tee "$LOCAL_LOG"; [ "${PIPESTATUS[0]}" -eq 0 ]; then
+    LOCAL_STATUS="passed"
+  else
+    LOCAL_STATUS="FAILED"
+    # Errors at setup that are only "HTTP Error 404" while the SDK is fetched are not test failures: run just those again.
+    for round in 1 2; do
+      grep -q "HTTP Error 404" "$LOCAL_LOG" || break
+      echo; echo "== the GenVM download answered 404 for some tests; running only the failed ones again (round $round)"
+      sleep 20
+      if python3 -m pytest -q --lf --junitxml="reports/local-tests-$STAMP.xml" 2>&1 | tee "$LOCAL_LOG"; [ "${PIPESTATUS[0]}" -eq 0 ]; then LOCAL_STATUS="passed"; break; fi
+    done
+    if [ "$LOCAL_STATUS" != "passed" ] && grep -q "HTTP Error 404" "$LOCAL_LOG"; then
+      echo
+      echo "The GenVM release that genlayer-test wants is not downloadable (HTTP 404). This is not a contract failure."
+      echo "Try:  python3 -m pip install -U genlayer-test   then   bash scripts/setup.sh"
+      echo "Or pin an existing release:  BACKSTOP_SDK_VERSION=<version> bash scripts/run-all.sh"
+    fi
+  fi
 fi
 
 if [ "${SKIP_LIVE:-0}" != "1" ]; then

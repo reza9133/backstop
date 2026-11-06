@@ -1,6 +1,7 @@
 """Shared helpers for the direct-mode suite (genlayer-test fixtures)."""
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 
@@ -119,7 +120,8 @@ def deploy(direct_deploy, direct_vm):
     at(direct_vm, 0)
     direct_vm.check_pickling = True  # the closures handed to the VM must be serializable
     _forget_contract_class()
-    c = direct_deploy(CONTRACT)
+    sdk_ver = os.environ.get("BACKSTOP_SDK_VERSION", "v0.2.16")  # pinned GenVM release; override with the env var
+    c = direct_deploy(CONTRACT, sdk_version=sdk_ver)
     mod = sys.modules[MODULE]
     mod._Wire = Wire
     Wire.sent = []
