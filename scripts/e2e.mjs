@@ -511,6 +511,34 @@ const snapshot = async () => ({ insured: await balanceOf(insured.address), a: aw
 const delta = (after, before) => ({ insured: after.insured - before.insured, a: after.a - before.a, b: after.b - before.b });
 
 /**
+ * Waits until every transfer the contract has booked as paid has really reached its recipient.
+ * The contract books a refund or payout when it emits the transfer, but the GEN only leaves the contract's balance when
+ * the node applies it, which can be minutes later. Until then the contract's real balance is higher than its books say:
+ *   contract balance - balance at the start  =  held + bonds - held at the start + value kept with refused calls
+ * holds only when nothing is on its way. Reading the three account balances until they stop moving cannot tell "settled"
+ * from "stalled while a refund is still pending", this test can. Returns { ok, gap } (gap = GEN still on its way).
+ */
+async function transfersLanded({ tries = 120, every = 3000 } = {}) {
+  let gap = 0n;
+  for (let i = 0; i < tries; i++) {
+    const b = await books();
+    const onChain = (await balanceOf(CONTRACT)) - startContract;
+    gap = onChain - (BigInt(b.held) + BigInt(b.bonds) - startBooks + stuckTotal());
+    if (gap === 0n) return { ok: true, gap };
+    await sleep(every);
+  }
+  return { ok: false, gap };
+}
+
+/** Everything booked has landed and the three balances are quiet: the point from which a "before" snapshot can be trusted. */
+async function settle(label) {
+  const t = await transfersLanded();
+  await quiet();
+  check(label, t.ok, t.ok ? "every booked transfer has reached its recipient" : `the contract holds ${fmt(t.gap)} more than its books say, so a refund or payout is still on its way`);
+  return t.ok;
+}
+
+/**
  * The money that moved for one policy must match the state it ended in. `bondPaidBy` says who paid the contest bond
  * (the bond is part of what that account paid in). Returns the row.
  */
@@ -523,7 +551,9 @@ async function checkMoney(pid, before, bondPaidBy = null) {
   const keptNow = kept(stuck);
   const insuredNet = BigInt(row.insured_got) - paidIn.insured - keptNow.insured;
   const backersNet = BigInt(row.backers_got) - paidIn.backers - keptNow.backers;
-  // read the balances again until they show what the policy says (up to about three minutes), then compare
+  // the policy's own refunds and payouts may still be on their way: wait for them, then read the balances until they
+  // show what the policy says (up to about three minutes more), then compare
+  await transfersLanded();
   let after = await snapshot();
   for (let i = 0; i < 60; i++) {
     const d0 = delta(after, before);
@@ -545,7 +575,8 @@ async function scenario(name, note_, fn) {
   console.log(`\n== ${name}: ${note_}`);
   flush();
   try {
-    await quiet(); // the "before" balances of a scenario must not still be waiting for a refund of the one before
+    // the "before" balances of a scenario must not still be waiting for a refund of the one before
+    await settle("no refund or payout of an earlier scenario is still on its way");
     await fn();
     current.status = current.checks.every((c) => c.ok) ? "passed" : "failed";
   } catch (err) {
@@ -634,6 +665,7 @@ const scenarios = {
         { key: "met", terms: MET_TERMS, expect: "should be refused: the page already shows the event" },
       ];
       for (const c of cases) {
+        await settle(`nothing is still on its way before the ${c.key} wording is tried`);
         const before = await balanceOf(insured.address);
         const pid = await newPolicy({ terms: c.terms, label: `create_policy (${c.key})` });
         if (pid === null) continue;
@@ -642,14 +674,17 @@ const scenarios = {
         note(`${c.key} wording (${c.expect}): ${STATE[row.state]}${row.vet ? `, flags [${row.vet.flags.join(", ")}]` : ""}`);
         check(`the ${c.key} wording was decided (open, refused or still waiting)`, [S.OPEN, S.REFUSED, S.DRAFT].includes(row.state), STATE[row.state]);
         if (row.state === S.REFUSED) {
-          const after = await balanceBecomes(insured.address, before);
+          const after = await balanceBecomes(insured.address, before, { tries: 120 });
           check(`the premium of the refused ${c.key} policy came back`, after === before, `${fmt(before)} -> ${fmt(after)}`);
           check("a refused policy can no longer be backed", row.insured_got === PREMIUM.toString() && row.backers_got === "0");
         }
         if (row.state === S.OPEN) check("an open policy has its backing deadline", row.backing_until > netNow() - 60);
         if (row.state === S.OPEN || row.state === S.DRAFT) {
           const s = await send(insured, "cancel_policy", [pid], { label: `cancel_policy (${c.key}, clean up)` });
-          if (s.ok) await balanceBecomes(insured.address, before);
+          if (s.ok) {
+            const back = await balanceBecomes(insured.address, before, { tries: 120 });
+            check(`the premium of the cancelled ${c.key} policy came back`, back === before, `${fmt(before)} -> ${fmt(back)}`);
+          }
         }
       }
       await solvent();
@@ -793,9 +828,12 @@ console.log(`reports: ${base}.{html,md,json}`);
 
 let start;
 let startContract = 0n;
+let startBooks = 0n; // what the contract's books already held before this run (0 for a fresh contract)
 try {
   start = await snapshot();
   startContract = await balanceOf(CONTRACT);
+  const b0 = await books();
+  startBooks = BigInt(b0.held) + BigInt(b0.bonds);
 } catch (err) {
   die(`Cannot reach the Studionet RPC (${RPC}): ${String(err?.cause?.message ?? err?.message ?? err)}`);
 }
@@ -833,7 +871,7 @@ check("no bond is left held", BigInt(b.bonds) === 0n, fmt(b.bonds));
   }
   note(`value attached to refused calls and kept by the contract: ${fmt(stuckTotal())} (insured ${fmt(stuck.insured)}, backer A ${fmt(stuck.backerA)}, backer B ${fmt(stuck.backerB)}, outsider ${fmt(stuck.outsider)})`);
   check("no GEN was lost or created: insured + backers + contract hold the same total as at the start", t.sum === want, `difference ${fmt(t.sum - want)}`);
-  check("the contract's own balance is its books plus the value attached to refused calls", t.contract - startContract === BigInt(b.held) + BigInt(b.bonds) + stuckTotal(), `contract balance changed by ${fmt(t.contract - startContract)}; books hold ${fmt(BigInt(b.held) + BigInt(b.bonds))}, refused calls ${fmt(stuckTotal())}`);
+  check("the contract's own balance is its books plus the value attached to refused calls", t.contract - startContract === BigInt(b.held) + BigInt(b.bonds) - startBooks + stuckTotal(), `contract balance changed by ${fmt(t.contract - startContract)}; books hold ${fmt(BigInt(b.held) + BigInt(b.bonds) - startBooks)}, refused calls ${fmt(stuckTotal())}`);
 }
 current.status = current.checks.every((c) => c.ok) ? "passed" : "failed";
 
