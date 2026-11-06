@@ -6,6 +6,7 @@
 #   READ_LEVEL=2 bash rehearsal/run.sh --only lifecycle    the model reads level 2 (a payout)
 #   READ_LEVEL=1 APPEAL_LEVEL=2 bash rehearsal/run.sh --only contest   the appeal overturns the reading
 #   BIND_MODE=refuse bash rehearsal/run.sh --only lifecycle   the inception check finds the event already happened
+#   VET_REFUSE_PRIMARY=1 bash rehearsal/run.sh                 the model refuses the standard wording, the fallback wording is used
 set -e
 here="$(cd "$(dirname "$0")/.." && pwd)"
 work="$here/.rehearsal-tmp"

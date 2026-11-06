@@ -52,7 +52,9 @@ def set_mocks(vm):
     vm.mock_web(r"iana\.org", {"status": 200, "body": PAGE_TEXT})
     # the more specific wordings first: the first matching mock answers
     vm.mock_llm(r"wording underwriter[\s\S]*opinion of whoever", check(False, ["vague", "subjective"], "The terms rest on feelings."))
-    vm.mock_llm(r"wording underwriter[\s\S]*reserved for use in documentation", check(False, ["already_met"], "The page already states this."))
+    vm.mock_llm(r"wording underwriter[\s\S]*Level 1 is reached if the page contains", check(False, ["already_met"], "The page already contains this phrase."))
+    if os.environ.get("VET_REFUSE_PRIMARY") == "1":  # the model dislikes the standard wording, so the fallback wording is used
+        vm.mock_llm(r"wording underwriter[\s\S]*The policy looks only at", check(False, ["vague"], "The wording is not objective enough."))
     vm.mock_llm(r"wording underwriter", check(True))
     vm.mock_llm(r"inception inspector", check(BIND_MODE == "pass", [] if BIND_MODE == "pass" else ["already_met"]))
     vm.mock_llm(r"claims adjuster", reading(READ_LEVEL))

@@ -77,17 +77,27 @@ const STAKE_A = 12n * MILLI;
 const STAKE_B = COVER - STAKE_A;
 const TIERS = [2500, 6000, 10000];
 const T = { backing: 900, cover: 120, resolve: 900, contest: 60 }; // seconds
-const TITLE = "Example domains stay reserved";
+const TITLE = "Example Domains page stays intact";
+// Objective, state-based wording: it depends only on the text of the page as it is read after the cover period ended,
+// and every level names exact phrases that are on the page today (so the event has not happened yet).
 const TERMS =
-  "Level 1 is reached if the page announces that the domain example.com was withdrawn, retired or handed to a commercial owner " +
-  "during the cover period. Level 2 is reached if the page announces that example.net and example.org were also withdrawn or handed over. " +
-  "Level 3 is reached if the page announces that all domain names reserved for documentation use were withdrawn.";
+  'The policy looks only at the visible text of the source page when it is read after the cover period has ended. ' +
+  'Level 1 is reached if that text no longer contains the exact phrase "Example Domains". ' +
+  'Level 2 is reached if, in addition, it no longer contains the exact phrase "example.com". ' +
+  'Level 3 is reached if, in addition, it no longer contains the exact phrase "IANA". ' +
+  'If every one of the three phrases is still present, no level is reached.';
+// A shorter fallback, used when the model refuses the first wording at the wording check.
+const TERMS_SIMPLE =
+  'Judged on the visible text of the source page when it is read after the cover period has ended: Level 1 is reached if the page no longer ' +
+  'contains the exact phrase "Example Domains". Level 2 is reached if the page also no longer contains the exact phrase "example.com". ' +
+  'Level 3 is reached if the page contains neither phrase nor the exact word "IANA".';
 const VAGUE_TERMS =
   "Level 1 is reached if things around the example domains feel worse than before. Level 2 is reached if they feel a lot worse. " +
   "Level 3 is reached if they feel terrible, in the opinion of whoever looks at the situation.";
 const MET_TERMS =
-  "Level 1 is reached if the page states that example domains are reserved for use in documentation. Level 2 is reached if it also " +
-  "lists the names example.com, example.net and example.org. Level 3 is reached if it names the organisation that maintains them.";
+  'Judged on the visible text of the source page when it is read after the cover period has ended: Level 1 is reached if the page contains ' +
+  'the exact phrase "Example Domains". Level 2 is reached if it also contains the exact phrase "example.com". Level 3 is reached if it also ' +
+  'contains the exact word "IANA".';
 
 if (DRY) {
   console.log("Backstop live test plan (dry run)");
@@ -400,16 +410,32 @@ async function fillIt(pid) {
   return row;
 }
 
+/**
+ * Writes a policy and runs the wording check. When the model refuses the standard wording, one more policy with a
+ * simpler wording is written (the refused one got its premium back), so that the rest of the run can go on.
+ * Returns the row of the last policy; it is OPEN when a wording passed.
+ */
+async function openPolicy(o = {}) {
+  const wordings = o.terms ? [o.terms] : [TERMS, TERMS_SIMPLE];
+  let row = null;
+  for (let i = 0; i < wordings.length; i++) {
+    const pid = await newPolicy({ ...o, terms: wordings[i], label: i ? `${o.label ?? "create_policy"} (simpler wording)` : o.label });
+    if (pid === null) return row;
+    row = await vetIt(pid);
+    recordVerdicts(row);
+    if (row.state === S.OPEN) return row;
+    note(`policy ${pid} ended as ${STATE[row.state]} at the wording check: ${row.note}`);
+    if (row.state === S.DRAFT) await send(insured, "cancel_policy", [pid], { label: "cancel_policy (clean up)" });
+  }
+  return row;
+}
+
 /** Walks a fresh policy to ACTIVE, or as far as the model lets it. Returns the row. */
 async function activate(o = {}) {
-  const pid = await newPolicy(o);
-  if (pid === null) return null;
-  let row = await vetIt(pid);
-  recordVerdicts(row);
-  if (row.state !== S.OPEN) {
-    note(`policy ${pid} ended as ${STATE[row.state]} at the wording check: ${row.note}`);
-    return row;
-  }
+  let row = await openPolicy(o);
+  if (row === null) return null;
+  if (row.state !== S.OPEN) return row;
+  const pid = row.id;
   row = await fillIt(pid);
   row = await aiStep("bind", pid, S.FILLED);
   recordVerdicts(row);
@@ -426,6 +452,19 @@ async function readIt(row) {
   return after;
 }
 
+/**
+ * The node can report a balance a while after the transaction that moved it was decided, so a balance is read
+ * again until it is the expected one (or the time is up). Returns the last balance read.
+ */
+async function balanceBecomes(addr, expected, { tries = 60, every = 3000 } = {}) {
+  let last = await balanceOf(addr);
+  for (let i = 0; i < tries && last !== expected; i++) {
+    await sleep(every);
+    last = await balanceOf(addr);
+  }
+  return last;
+}
+
 const snapshot = async () => ({ insured: await balanceOf(insured.address), a: await balanceOf(backerA.address), b: await balanceOf(backerB.address) });
 const delta = (after, before) => ({ insured: after.insured - before.insured, a: after.a - before.a, b: after.b - before.b });
 
@@ -435,12 +474,19 @@ const delta = (after, before) => ({ insured: after.insured - before.insured, a: 
  */
 async function checkMoney(pid, before, bondPaidBy = null) {
   const row = await getPolicy(pid);
-  const after = await until(snapshot, (s) => s.insured !== before.insured || s.a !== before.a || s.b !== before.b, { tries: 15, every: 2000 });
-  const d = delta(after, before);
   const bond = BigInt(row.bond);
   const paidIn = { insured: PREMIUM + (bondPaidBy === "insured" ? bond : 0n), backers: BigInt(row.funded) + (bondPaidBy === "backer" ? bond : 0n) };
   const insuredNet = BigInt(row.insured_got) - paidIn.insured;
   const backersNet = BigInt(row.backers_got) - paidIn.backers;
+  // read the balances again until they show what the policy says (up to about three minutes), then compare
+  let after = await snapshot();
+  for (let i = 0; i < 60; i++) {
+    const d0 = delta(after, before);
+    if (d0.insured === insuredNet && d0.a + d0.b === backersNet) break;
+    await sleep(3000);
+    after = await snapshot();
+  }
+  const d = delta(after, before);
   check("the insured's balance moved by what the policy says", d.insured === insuredNet, `moved ${fmt(d.insured)}, expected ${fmt(insuredNet)}`);
   check("the backers' balances moved by what the policy says", d.a + d.b === backersNet, `moved ${fmt(d.a + d.b)}, expected ${fmt(backersNet)}`);
   check("everything the policy held was paid out", BigInt(row.insured_got) + BigInt(row.backers_got) === BigInt(row.premium) + BigInt(row.funded) + bond, `${fmt(BigInt(row.insured_got) + BigInt(row.backers_got))}`);
@@ -493,7 +539,7 @@ const scenarios = {
       await mustWork(insured, "cancel_policy", [pid], { label: "cancel_policy" });
       const done = await until(() => getPolicy(pid), (r) => r.state === S.CANCELLED);
       check("the draft is cancelled", done.state === S.CANCELLED, STATE[done.state]);
-      const afterBal = await until(() => balanceOf(insured.address), (b) => b === before, { tries: 10, every: 2000 });
+      const afterBal = await balanceBecomes(insured.address, before);
       check("the premium came back to the wei", afterBal === before, `${fmt(before)} -> ${fmt(afterBal)}`);
       await solvent();
     }),
@@ -549,7 +595,7 @@ const scenarios = {
         note(`${c.key} wording (${c.expect}): ${STATE[row.state]}${row.vet ? `, flags [${row.vet.flags.join(", ")}]` : ""}`);
         check(`the ${c.key} wording was decided (open, refused or still waiting)`, [S.OPEN, S.REFUSED, S.DRAFT].includes(row.state), STATE[row.state]);
         if (row.state === S.REFUSED) {
-          const after = await until(() => balanceOf(insured.address), (b) => b === before, { tries: 10, every: 2000 });
+          const after = await balanceBecomes(insured.address, before);
           check(`the premium of the refused ${c.key} policy came back`, after === before, `${fmt(before)} -> ${fmt(after)}`);
           check("a refused policy can no longer be backed", row.insured_got === PREMIUM.toString() && row.backers_got === "0");
         }
@@ -652,11 +698,9 @@ const scenarios = {
   lapse: () =>
     scenario("lapse", "a policy that is only half backed: unback, wait for the deadline, lapse; everything goes back", async () => {
       const before = await snapshot();
-      const pid = await newPolicy({ times: { backing: 60 }, label: "create_policy (short backing time)" });
-      if (pid === null) return;
-      let row = await vetIt(pid);
-      recordVerdicts(row);
-      if (row.state !== S.OPEN) skip(`the policy ended as ${STATE[row.state]} at the wording check`);
+      let row = await openPolicy({ times: { backing: 60 }, label: "create_policy (short backing time)" });
+      if (row === null || row.state !== S.OPEN) skip(`no wording passed the wording check (${row ? STATE[row.state] : "no policy"})`);
+      const pid = row.id;
       await mustWork(backerA, "back", [pid], { value: 6n * MILLI, label: "back (backer A)" });
       await mustWork(backerB, "back", [pid], { value: 4n * MILLI, label: "back (backer B)" });
       await mustFail(backerA, "unback", [pid, 6n * MILLI - MILLI / 2n], { label: "unback leaving less than a lot" });
