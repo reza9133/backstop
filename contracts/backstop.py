@@ -556,6 +556,37 @@ def _assess(stage: str, ctx: dict) -> tuple:
     return {"kind": "READ", "level": level, "quote": quote, "flags": flags, "reason": reason, "hash": digest}, evidence
 
 
+# ---- consensus: one decision, agreed exactly --------------------------------------------------------------------------
+#
+# A result of `_assess` has two parts.
+#
+#   * The DECISION is the only part the contract acts on: it picks the next state of the policy and the amount of every
+#     transfer. It is (kind) for an unreadable page or an undecided reading, (kind, ok) for a wording or inception
+#     check, and (kind, level) for a reading. A validator accepts a leader only when the leader's decision is EQUAL to
+#     the decision the validator reached itself. There is no tolerance in either direction: a leader that refuses where
+#     the validator would pass, a leader that reports "no decision" where the validator decided, and a leader that names
+#     a neighbouring level are all rejected, because each of them would send the policy to a different state or pay a
+#     different amount. Whatever the network approves is therefore the decision every approving validator reached.
+#   * The DETAIL (reason, flags, quote, hash) explains the decision. It is stored for readers and never chooses a state
+#     or an amount. It is only shape-checked, and the quote of a payout is proven on the validator's own copy of the page.
+#
+# The result is also a closed schema: exactly the keys of its kind, the right types, flags from the stage's vocabulary,
+# and nothing that contradicts the decision (a pass carries no refusing flag, a payout carries a quote and no doubt flag).
+
+_KEYS = {
+    "UNREADABLE": frozenset(("kind", "reason")),
+    "CHECK": frozenset(("kind", "ok", "flags", "reason", "hash")),
+    "UNCLEAR": frozenset(("kind", "flags", "reason", "hash")),
+    "READ": frozenset(("kind", "level", "quote", "flags", "reason", "hash")),
+}
+_KINDS = {
+    ST_VET: ("CHECK", "UNREADABLE"),
+    ST_BIND: ("CHECK", "UNREADABLE"),
+    ST_READ: ("READ", "UNCLEAR", "UNREADABLE"),
+    ST_APPEAL: ("READ", "UNCLEAR", "UNREADABLE"),
+}
+
+
 def _shape_ok(theirs: dict, vocabulary) -> bool:
     flags = theirs.get("flags")
     if not isinstance(flags, list) or len(flags) > len(vocabulary) or len(set(flags)) != len(flags):
@@ -568,48 +599,66 @@ def _shape_ok(theirs: dict, vocabulary) -> bool:
     return _plain(theirs.get("reason"), MAX_REASON)
 
 
+def _well_formed(stage: str, res, text: str) -> bool:
+    """Is `res` a complete, self-consistent result of this stage? `text` is the page text of the one who checks."""
+    if not isinstance(res, dict):
+        return False
+    kind = res.get("kind")
+    if not isinstance(kind, str) or kind not in _KINDS[stage] or set(res) != _KEYS[kind]:
+        return False
+    if kind == "UNREADABLE":
+        return _plain(res["reason"], MAX_REASON)
+    check = stage in (ST_VET, ST_BIND)
+    if not _shape_ok(res, CHECK_FLAGS if check else READ_FLAGS):
+        return False
+    if kind == "CHECK":
+        ok = res["ok"]
+        # _assess never passes a wording that carries a refusing flag, so a result that does is forged
+        return isinstance(ok, bool) and (not ok or not any(f in CHECK_HARD for f in res["flags"]))
+    if kind == "UNCLEAR":
+        return True
+    level, quote = res["level"], res["quote"]
+    if isinstance(level, bool) or not isinstance(level, int) or level < 0 or level > 3:
+        return False
+    if level == 0:
+        return quote == ""
+    if not isinstance(quote, str) or len(quote) > MAX_QUOTE or not _quote_in(quote, text):
+        return False
+    # _assess lets a level 0 keep any flag (they only describe the doubt), but a payout level never carries a blocking one
+    return not any(f in READ_BLOCKING for f in res["flags"])
+
+
+def _decision(res: dict) -> tuple:
+    """What the contract acts on (see above). Only called with a well-formed result, so `ok` is a bool and `level` an
+    int and the tuples below cannot be confused (True == 1 would otherwise make a verdict look like a level)."""
+    kind = res["kind"]
+    if kind == "CHECK":
+        return (kind, res["ok"])
+    if kind == "READ":
+        return (kind, res["level"])
+    return (kind,)
+
+
 def _accepts(stage: str, theirs, mine: dict, text: str) -> bool:
     """Does a validator, who read the policy again (`mine`, with the page text `text`), accept the leader's result?
 
-    The rule leans towards caution. A leader may be stricter than the validator (a refusal where the validator would
-    pass, no decision where the validator would decide) but never more lenient, and a payout level needs the same
-    side of zero, at most one step of difference and a quote that is on the validator's copy of the page too."""
-    if not isinstance(theirs, dict):
+    Yes only when both results are well-formed and carry exactly the same decision: the same kind of result, the same
+    verdict of a check, the same payout level of a reading. A payout also needs a quote that is on the validator's own
+    copy of the page. Nothing is accepted because it is merely cautious or merely close."""
+    if not _well_formed(stage, theirs, text) or not _well_formed(stage, mine, text):
         return False
-    kind, my_kind = theirs.get("kind"), mine.get("kind")
-    if kind == "UNREADABLE" or my_kind == "UNREADABLE":
-        return kind == my_kind and _plain(theirs.get("reason"), MAX_REASON)
-    if stage in (ST_VET, ST_BIND):
-        if kind != "CHECK" or my_kind != "CHECK" or not isinstance(theirs.get("ok"), bool):
-            return False
-        if theirs["ok"] and not mine["ok"]:
-            return False  # more lenient than the validator
-        if not _shape_ok(theirs, CHECK_FLAGS):
-            return False
+    if _decision(theirs) != _decision(mine):
+        return False
+    if theirs["kind"] == "CHECK":
+        # A page that tries to steer the reviewer is a fact about the page, not an opinion: when the validator's copy
+        # steers, the stored record has to say so too.
         return "injection" not in mine["flags"] or "injection" in theirs["flags"]
-    if kind == "UNCLEAR":
-        return my_kind in ("UNCLEAR", "READ") and _shape_ok(theirs, READ_FLAGS)
-    if kind != "READ" or my_kind != "READ":
-        return False
-    level, my_level = theirs.get("level"), mine["level"]
-    if isinstance(level, bool) or not isinstance(level, int) or level < 0 or level > 3:
-        return False
-    if (level == 0) != (my_level == 0) or abs(level - my_level) > 1:
-        return False
-    quote = theirs.get("quote")
-    if level == 0:
-        if quote != "":
-            return False
-    elif not isinstance(quote, str) or len(quote) > MAX_QUOTE or not _quote_in(quote, text):
-        return False
-    if not _shape_ok(theirs, READ_FLAGS):
-        return False
-    # _assess lets a level 0 keep any flag (they only describe the doubt), but a payout level never carries a blocking one
-    return level == 0 or not any(f in READ_BLOCKING for f in theirs["flags"])
+    return True
 
 
 def _judge(stage: str, ctx: dict) -> dict:
-    """The leader assesses the policy; every validator assesses it again and compares (see _accepts)."""
+    """The leader assesses the policy; every validator assesses it again and accepts only the same decision (see
+    _accepts), so the result that is stored and acted on is one that every approving validator reached too."""
 
     def leader_fn():
         return _assess(stage, ctx)[0]

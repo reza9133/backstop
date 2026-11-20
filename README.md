@@ -23,7 +23,7 @@ Backstop has two-sided capital, tiers, syndication and an AI that reads the worl
 * **Inception check.** Adverse selection (insuring something that has already happened) is blocked by a second reading when the cover starts.
 * **Tiered payouts with a directional appeal.** The appeal can only help the party that contested; if it moves the other way the first reading stands and the bond is forfeited to the other side.
 * **Exact money.** Pro-rata sharing uses one rounding rule (the dust goes to the largest backer) and the contract asserts that every settlement adds up to the wei before any transfer is made.
-* **Validator rule that leans to caution.** A leader may be *stricter* than a validator, never more lenient (details below).
+* **One decision, agreed exactly.** A validator approves a leader's result only when it carries the very decision the validator reached itself: the same verdict, the same payout level. "Stricter is fine" and "one level off is fine" do not exist, so whatever the network approves leads to the same state and the same payment, to the wei (details below).
 
 ## Life of a policy
 
@@ -57,12 +57,22 @@ create_policy ──► DRAFT ──vet──► OPEN ──back (fills the cove
 
 ## The consensus rule
 
-Every AI step runs under `gl.vm.run_nondet_unsafe`: the leader assesses, each validator assesses again and compares with `_accepts`. The rule leans towards caution:
+Every AI step runs under `gl.vm.run_nondet_unsafe`: the leader assesses, each validator assesses again from the same policy and its own copy of the page, and `_accepts` compares the two. A result is accepted **only if both are well-formed and carry exactly the same decision**. The decision is the one part of a result the contract acts on:
 
-* a **check** (vet or bind): the leader may refuse where the validator would pass, never the other way round;
-* a **reading**: the leader may report "no decision" where the validator decided; for a payout the validator needs the same side of zero, at most one level of difference, and the leader's quote must be on the *validator's* copy of the page too;
-* unreadable pages must be unreadable for both;
-* every flag, hash and text field is shape-checked, so a forged result cannot be stored.
+| Step | The decision (must be equal) | What it controls |
+| --- | --- | --- |
+| **vet**, **bind** | the kind (`CHECK` or `UNREADABLE`) and, for a check, the verdict *pass / refuse* | `OPEN` or `REFUSED` (and a retry); `ACTIVE` or `VOID` (and a retry) |
+| **read**, **appeal** | the kind (`READ`, `UNCLEAR` or `UNREADABLE`) and, for a reading, the payout **level** | a reading on record or a retry (and, after three, `VOID`); the exact payment and the direction of the bond |
+
+There is no tolerance in either direction. A leader that refuses where the validator would pass, a leader that reports "no decision" where the validator decided, a leader that names a neighbouring level: each of them would send the policy to another state or pay another amount, so each is rejected and the network moves on to another leader. Because every approving validator holds the same decision as the leader, every approved output has the same lifecycle consequence and the same payout, whichever validators happen to be in the majority.
+
+Around the decision there is proof and shape, never trust:
+
+* **Proof.** A payout level needs a quote that is verbatim on the page of the validator that checks it (the leader's quote on the validator's copy, and the validator's own quote on its copy). A validator that cannot read the page reaches a different decision and rejects the leader's. A validator whose copy of the page tries to steer the reviewer reaches a refusal or "no decision", so it rejects any leader's pass or payout, and a leader's refusal must record the steering too.
+* **Closed schema.** A result has exactly the keys of its kind, the right types, flags from the stage's own vocabulary, and nothing that contradicts its decision: a pass carries no refusing flag, a payout carries a quote and no blocking doubt flag, level 0 carries no quote. A forged result is rejected even when its decision matches.
+* **Details are not decisions.** `reason`, the flags that are only information, and the page `hash` are stored for readers. They are shape-checked and they never choose a state or an amount, so two results with the same decision and different words have the same consequence (the tests show it to the wei).
+
+The price of exactness is liveness, not safety: when the validators' own readings of a borderline page differ (level 1 against level 2, say), the leader's result is not approved, the transaction may take more rounds or not be accepted at all, and nothing changes. Ask again with `vet`, `bind`, `resolve` or `appeal`.
 
 ## Public interface
 
@@ -90,6 +100,7 @@ States: `0 DRAFT, 1 OPEN, 2 FILLED, 3 ACTIVE, 4 READ, 5 CONTESTED, 6 SETTLED, 7 
 * **Stable text.** The quote is checked against the text each validator fetches, so pages whose text changes every second (clocks, tickers) cannot support a payout. Use reports, status histories, bulletins.
 * **A page that talks to the model** (prompt-injection phrases) is treated as unreliable: the reading is "no decision", and three of those void the policy. Anyone who can write on the page can therefore void a cover on it, but never trigger a payout.
 * **The model reads the first 6000 characters** of the page's visible text.
+* **A reading is final only when the validators reach it too.** A page that makes the model hesitate between two levels may need several rounds, or a new call, before a level is approved; it can never be approved at a level the validators do not share.
 * **One contest per policy**, and a backer slot is never freed: at most 12 distinct addresses ever back one policy.
 * No keeper fee: whoever calls `vet`, `bind`, `resolve`, `settle` does it because they are a party (or for free).
 * This is a test-network project. It has not been audited.
@@ -143,7 +154,7 @@ python3 -m pytest -q
 ### Deploy by hand on Studionet
 
 * **GenLayer Studio:** open the Studio, create a new contract file, paste `contracts/backstop.py`, choose the Studionet network and deploy (no constructor arguments).
-* **Script:** `DEPLOY_KEY=0x... npm run deploy` writes the address to `.backstop-address`; later runs use it, or set `BACKSTOP_ADDRESS`.
+* **Script:** `DEPLOY_KEY=0x... npm run deploy` writes the address to `.backstop-address`; later runs use it, or set `BACKSTOP_ADDRESS`. `.backstop-address` belongs to one deployment: after any change of `contracts/backstop.py` delete it (or deploy again), otherwise the live run tests the old code.
 
 Example call from `genlayer-js` (a cover of 0.02 GEN with a premium of 0.004 GEN):
 
@@ -167,6 +178,7 @@ The AI is a real model, so the live run accepts any verdict it gives and checks 
   `BACKSTOP_SDK_VERSION=<version>`.
 - **Live run: `Unexpected token '<', "<!DOCTYPE"`.** The Studionet gateway answered with an HTML error page. The script now
   retries such answers; if a scenario still fails, run it alone: `node scripts/e2e.mjs --only lapse`.
+- **Live run: an AI step (`vet`, `bind`, `resolve`, `appeal`) is not accepted.** The validators must reach the leader's exact decision (see the consensus rule). When they do not, the transaction ends without a decision and changes nothing. The run sends such a call up to three times, `aiStep` also asks again after the two minute pause, and running the scenario alone usually settles it.
 - **Live run: balance checks.** Refunds can show up on the node a few seconds late, so each scenario waits until the
   balances stop moving before it takes its "before" snapshot.
 
